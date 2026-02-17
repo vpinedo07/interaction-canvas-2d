@@ -1,13 +1,14 @@
 /* =========================================================
    Canvas 2D - Retro Arcade
    - Hover: cambia color
-   - Click: fade-out + EXPLOSIÓN vistosa
-   - Movimiento: "lanzados" desde abajo (impulso inicial) + deriva lateral
-   - Colisiones círculo-círculo + rebotes laterales
+   - Click: fade-out + explosión vistosa
+   - Movimiento: lanzados desde abajo + deriva lateral
+   - Colisiones círculo-círculo
    - Salen por arriba del canvas
-   - Estadística: eliminados numérico y porcentual
-   - Total 150 en niveles de 10 (15 niveles)
-   - Dificultad: aumenta por nivel
+   - Stats: eliminados numérico y %
+   - 150 en niveles de 10, aumenta dificultad
+   - NUEVO: Si haces click y NO le atinas a ningún círculo,
+            los círculos cercanos "se encarreran" y aceleran para escapar.
 ========================================================= */
 
 (() => {
@@ -16,12 +17,12 @@
   const GROUP_SIZE = 10;
   const TOTAL_LEVELS = Math.ceil(TOTAL_ELEMENTS / GROUP_SIZE);
 
-  // Velocidad base y factor por nivel (tendencia final, cuando ya “se estabiliza”)
+  // Velocidad base y factor por nivel (tendencia final)
   const BASE_SPEED = 0.55;
   const SPEED_PER_LEVEL = 0.10;
 
   // Fade-out al eliminar
-  const FADE_SPEED = 0.1;
+  const FADE_SPEED = 0.02;
 
   // Tamaños
   const R_MIN = 10;
@@ -30,24 +31,25 @@
   // Deriva lateral
   const DRIFT_MAX = 0.70;
 
-  // ---- NUEVO: Lanzamiento desde abajo (impulso)
-  // Impulso inicial extra hacia arriba (se suma a la velocidad por nivel)
-  const LAUNCH_BOOST_MIN = 1.4;   // mínimo extra inicial
-  const LAUNCH_BOOST_MAX = 3.2;   // máximo extra inicial
+  // Lanzamiento desde abajo (impulso)
+  const LAUNCH_BOOST_MIN = 1.4;
+  const LAUNCH_BOOST_MAX = 3.2;
+  const UP_DRAG = 0.992;
+  const SIDE_DRAG = 0.996;
+  const CRUISE_BLEND = 0.02;
+  const CRUISE_JITTER = 0.18;
 
-  // “Fricción” para que el impulso se vaya perdiendo y quede más lento
-  const UP_DRAG = 0.992;          // 0.98..0.999 (más cercano a 1 = dura más el impulso)
-  const SIDE_DRAG = 0.996;        // deriva lateral también se suaviza
+  // ---- NUEVO: “Escape” por miss-click (zona de pánico)
+  const PANIC_RADIUS = 140;          // px: radio de influencia del clic fallido
+  const PANIC_UP_BOOST = 1.15;       // empuje hacia arriba (más negativo vy)
+  const PANIC_SIDE_PUSH = 0.95;      // empuje lateral alejándose del clic
+  const PANIC_TURBO_FRAMES = 22;     // duración del turbo (frames)
+  const PANIC_TURBO_EXTRA = 0.06;    // aceleración extra por frame durante turbo
 
-  // Velocidad objetivo (tendencia) hacia arriba para que no se queden flotando
-  // (aplica una ligera interpolación hacia un vy “crucero” por nivel)
-  const CRUISE_BLEND = 0.02;      // 0..1, qué tan rápido vuelve a “cruise”
-  const CRUISE_JITTER = 0.18;     // variación para no verse idénticos
-
-  // Física de rebote
+  // Rebote/colisiones
   const COLLISION_RESTITUTION = 0.92;
   const SEPARATION_BIAS = 0.55;
-  const MAX_SPEED = 4.0;
+  const MAX_SPEED = 4.2;
 
   // Explosiones
   const EXPLOSION_PARTICLES_MIN = 18;
@@ -144,6 +146,7 @@
     draw() {
       ctx.save();
       ctx.globalAlpha = this.alpha;
+
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
       ctx.fillStyle = this.color;
@@ -154,6 +157,7 @@
       ctx.arc(this.x, this.y, this.size * 2.6, 0, Math.PI * 2);
       ctx.fillStyle = this.color;
       ctx.fill();
+
       ctx.restore();
     }
   }
@@ -184,17 +188,20 @@
       ctx.beginPath();
       ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
       ctx.stroke();
+
       ctx.restore();
     }
   }
 
   function createExplosion(x, y, baseColor, r) {
+    const neon = baseColor.replace(/0\.88|0\.92/g, "0.95");
+
     particles.push(new ShockRing({
       x, y,
       r0: Math.max(6, r * 0.3),
       r1: r * rand(2.2, 3.2),
       life: RING_LIFE,
-      color: baseColor.replace(/0\.88|0\.92/g, "0.95")
+      color: neon
     }));
 
     const count = randInt(EXPLOSION_PARTICLES_MIN, EXPLOSION_PARTICLES_MAX);
@@ -207,7 +214,7 @@
         vy: Math.sin(ang) * pwr,
         size: rand(1.2, 2.6) * (r / 18),
         life: randInt(SPARK_LIFE_MIN, SPARK_LIFE_MAX),
-        color: baseColor.replace(/0\.88|0\.92/g, "0.95")
+        color: neon
       }));
     }
 
@@ -229,9 +236,10 @@
     constructor({ x, y, r, vy, vx, fill, cruiseVy }) {
       this.x = x; this.y = y; this.r = r;
       this.vx = vx; this.vy = vy;
-
-      // “cruise” = velocidad objetivo hacia arriba cuando el impulso se estabiliza
       this.cruiseVy = cruiseVy;
+
+      // turbo de escape (miss-click)
+      this.turbo = 0;
 
       this.isHover = false;
       this.isDying = false;
@@ -251,25 +259,53 @@
 
     kill() { if (!this.isDying) this.isDying = true; }
 
+    // Activa “turbo escape”
+    panicBoost(clickX, clickY) {
+      if (this.isDying) return;
+
+      const dx = this.x - clickX;
+      const dy = this.y - clickY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist > PANIC_RADIUS) return;
+
+      // factor 0..1 (más fuerte si está más cerca del clic)
+      const t = 1 - (dist / PANIC_RADIUS);
+      const nx = dist > 0 ? (dx / dist) : rand(-1, 1);
+      const ny = dist > 0 ? (dy / dist) : rand(-1, 1);
+
+      // “Escapar” = subir más rápido (vy más negativo) + empuje lateral lejos del clic
+      this.vy -= PANIC_UP_BOOST * (0.55 + 0.75 * t);
+      this.vx += nx * PANIC_SIDE_PUSH * (0.35 + 0.95 * t);
+
+      // turbo por unos frames (se nota que se encarreran)
+      this.turbo = Math.max(this.turbo, PANIC_TURBO_FRAMES);
+    }
+
     update(boundsW) {
       if (this.isDying) {
         this.alpha = clamp(this.alpha - FADE_SPEED, 0, 1);
       }
 
-      // ---- “lanzamiento”:
-      // 1) drag para que el impulso inicial se vaya perdiendo
+      // Drag base (pierde impulso del “lanzamiento”)
       this.vy *= UP_DRAG;
       this.vx *= SIDE_DRAG;
 
-      // 2) vuelve poco a poco a una velocidad “crucero” por nivel
-      // (mezcla suave: vy -> cruiseVy)
+      // Turbo extra cuando están “escapando”
+      if (this.turbo > 0) {
+        // empuje continuo hacia arriba (más negativo)
+        this.vy -= PANIC_TURBO_EXTRA;
+        this.turbo--;
+      }
+
+      // Vuelve suave al cruise (para conservar el ritmo del nivel)
       this.vy = this.vy * (1 - CRUISE_BLEND) + this.cruiseVy * CRUISE_BLEND;
 
-      // aplicar movimiento
+      // mover
       this.x += this.vx;
       this.y += this.vy;
 
-      // rebote contra paredes laterales
+      // paredes laterales
       if (this.x - this.r <= 0) {
         this.x = this.r + 0.5;
         this.vx *= -1;
@@ -278,7 +314,7 @@
         this.vx *= -1;
       }
 
-      // clamp velocidades
+      // clamp
       this.vx = clamp(this.vx, -MAX_SPEED, MAX_SPEED);
       this.vy = clamp(this.vy, -MAX_SPEED, MAX_SPEED);
 
@@ -376,7 +412,7 @@
     if (spawnedTotal >= TOTAL_ELEMENTS) return;
     currentLevel++;
 
-    const levelSpeed = getLevelSpeed(currentLevel); // velocidad crucero
+    const levelSpeed = getLevelSpeed(currentLevel);
     const toSpawn = Math.min(GROUP_SIZE, TOTAL_ELEMENTS - spawnedTotal);
 
     const rect = canvas.getBoundingClientRect();
@@ -386,7 +422,6 @@
     for (let i = 0; i < toSpawn; i++) {
       const r = rand(R_MIN, R_MAX);
 
-      // posición inicial (nacen abajo, “fuera” del canvas)
       let x = rand(r + 6, W - r - 6);
       let y = H + rand(r + 30, r + 170);
 
@@ -406,14 +441,12 @@
         tries++;
       }
 
-      // deriva lateral inicial (más “arcade”)
       const vx = rand(-DRIFT_MAX, DRIFT_MAX) * rand(0.7, 1.2);
 
-      // ---- IMPULSO: arrancan más fuerte hacia arriba y luego se desaceleran
-      // cruiseVy es negativo (hacia arriba) y más lento
+      // cruise (hacia arriba)
       const cruiseVy = -(levelSpeed + rand(0.05, CRUISE_JITTER));
 
-      // impulso inicial = cruiseVy - boost (más negativo => más rápido hacia arriba)
+      // impulso inicial fuerte (lanzados)
       const boost = rand(LAUNCH_BOOST_MIN, LAUNCH_BOOST_MAX) * (r / 18);
       const vy = cruiseVy - boost;
 
@@ -467,7 +500,7 @@
     circles = circles.filter(c => c.update(W));
     resolveCollisions(circles);
 
-    // Dibujar
+    // Draw
     for (const c of circles) c.draw();
     updateAndDrawParticles();
 
@@ -544,14 +577,25 @@
     if (!isRunning) return;
 
     const p = getMousePos(evt);
+
+    // 1) Intentar “pegarle” a un círculo
+    let hit = false;
     for (let i = circles.length - 1; i >= 0; i--) {
       const c = circles[i];
       if (!c.isDying && c.containsPoint(p.x, p.y)) {
+        hit = true;
         createExplosion(c.x, c.y, c.baseFill, c.r);
         c.kill();
         deletedTotal++;
         updateUI();
         break;
+      }
+    }
+
+    // 2) Si NO le atinaste, activas “escape” para círculos cercanos
+    if (!hit) {
+      for (const c of circles) {
+        c.panicBoost(p.x, p.y);
       }
     }
   });
