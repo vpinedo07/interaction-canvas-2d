@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Retro Canvas 2D | Arcade Levels</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- CSS propio -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body class="retro-body">
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg retro-nav">
+    <div class="container">
+      <a class="navbar-brand retro-brand" href="#">
+        RETRO ARCADE · CANVAS 2D
+      </a>
+
+      <button class="navbar-toggler retro-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div id="nav" class="collapse navbar-collapse">
+        <div class="ms-auto d-flex gap-2 flex-wrap align-items-center">
+          <span class="retro-pill">HOVER = BOOST</span>
+          <span class="retro-pill">CLICK = ELIMINA</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="container py-4">
+    <div class="row g-3">
+      <!-- Panel izquierda: Canvas -->
+      <div class="col-12 col-lg-8">
+        <div class="retro-panel">
+          <div class="retro-panel-header">
+            <div>
+              <div class="retro-title">ZONA DE JUEGO</div>
+              <div class="retro-subtitle">Pasa el mouse para resaltar · Click para eliminar (fade)</div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button id="btnStart" class="btn retro-btn">START</button>
+              <button id="btnPause" class="btn retro-btn-outline" disabled>PAUSE</button>
+              <button id="btnReset" class="btn retro-btn-danger">RESET</button>
+            </div>
+          </div>
+
+          <!-- HUD -->
+          <div class="retro-hud">
+            <div class="retro-hud-item">
+              <div class="retro-hud-label">NIVEL</div>
+              <div class="retro-hud-value" id="badgeLevel">Nivel: 0/15</div>
+            </div>
+            <div class="retro-hud-item">
+              <div class="retro-hud-label">EN PANTALLA</div>
+              <div class="retro-hud-value" id="badgeSpawn">En pantalla: 0</div>
+            </div>
+            <div class="retro-hud-item">
+              <div class="retro-hud-label">TOTAL</div>
+              <div class="retro-hud-value" id="badgeTotal">Total: 150</div>
+            </div>
+          </div>
+
+          <div class="retro-canvas-wrap">
+            <canvas id="gameCanvas" aria-label="Canvas 2D"></canvas>
+            <div class="retro-scanlines" aria-hidden="true"></div>
+          </div>
+
+          <div class="retro-tip">
+            TIP: Elimina rápido para que el nivel no se “sienta” eterno. Cada nivel sube la velocidad.
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel derecha: Estadísticas -->
+      <div class="col-12 col-lg-4">
+        <div class="retro-panel h-100">
+          <div class="retro-panel-header">
+            <div>
+              <div class="retro-title">STATS</div>
+              <div class="retro-subtitle">Eliminados: número + porcentaje</div>
+            </div>
+          </div>
+
+          <div class="retro-stats">
+            <div class="retro-stat-box">
+              <div class="retro-stat-row">
+                <div>
+                  <div class="retro-hud-label">ELIMINADOS</div>
+                  <div class="retro-big" id="statDeleted">0</div>
+                </div>
+                <div class="text-end">
+                  <div class="retro-hud-label">PORCENTAJE</div>
+                  <div class="retro-big" id="statPercent">0%</div>
+                </div>
+              </div>
+
+              <div class="retro-progress mt-3">
+                <div id="progressBar" class="retro-progress-bar" style="width:0%"></div>
+              </div>
+            </div>
+
+            <div class="retro-divider"></div>
+
+            <div class="retro-rules">
+              <div class="retro-title-sm">REGLAS</div>
+              <ul class="mb-0">
+                <li>Hover: cambia color</li>
+                <li>Click: desaparece lentamente</li>
+                <li>Movimiento: abajo → arriba con deriva</li>
+                <li>150 elementos en 15 niveles (10 por nivel)</li>
+                <li>Velocidad aumenta por nivel</li>
+                <li>Rebote entre círculos (colisiones)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="retro-footer">
+    <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+      <div class="retro-footer-text">
+        © <span id="year"></span> · RETRO CANVAS 2D
+      </div>
+      <div class="retro-footer-text">
+        Programador: <span class="retro-accent">Víctor Pinedo</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- App JS (sin cambios) -->
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,307 @@
+/* =========================================================
+   SKIN RETRO ARCADE (sin cambiar funcionalidad)
+========================================================= */
+
+/* Fuente retro (Google Fonts) */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root{
+  --retro-bg: #070b14;
+  --retro-panel: #0b1220;
+  --retro-border: rgba(0, 255, 160, 0.35);
+  --retro-glow: rgba(0, 255, 160, 0.18);
+
+  --retro-text: rgba(215, 255, 240, 0.92);
+  --retro-muted: rgba(215, 255, 240, 0.68);
+
+  --retro-accent: #00ffa0;
+  --retro-accent2: #ff3df2;
+  --retro-danger: #ff3b30;
+  --retro-warn: #ffd60a;
+
+  --canvas-bg: #071018;
+}
+
+/* Fondo general */
+.retro-body{
+  background:
+    radial-gradient(1200px 600px at 20% 15%, rgba(0,255,160,.12), transparent 60%),
+    radial-gradient(900px 500px at 85% 30%, rgba(255,61,242,.10), transparent 60%),
+    linear-gradient(180deg, #040710 0%, #070b14 100%);
+  color: var(--retro-text);
+  font-family: "Press Start 2P", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* Navbar retro */
+.retro-nav{
+  background: rgba(7, 11, 20, 0.65);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--retro-border);
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+}
+
+.retro-brand{
+  color: var(--retro-text) !important;
+  text-shadow: 0 0 16px var(--retro-glow);
+  letter-spacing: .5px;
+  font-size: 0.78rem;
+}
+
+.retro-pill{
+  font-size: 0.62rem;
+  padding: .45rem .6rem;
+  border: 1px solid var(--retro-border);
+  border-radius: 999px;
+  color: var(--retro-text);
+  background: rgba(0, 255, 160, 0.06);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.25) inset;
+}
+
+.retro-toggler{
+  border: 1px solid var(--retro-border);
+}
+
+/* Panel retro */
+.retro-panel{
+  border: 1px solid var(--retro-border);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(0,255,160,.07), transparent 55%),
+    linear-gradient(180deg, rgba(255,61,242,.05), transparent 55%),
+    var(--retro-panel);
+  box-shadow:
+    0 20px 45px rgba(0,0,0,.45),
+    0 0 0 4px rgba(0,0,0,.18) inset;
+  overflow: hidden;
+}
+
+.retro-panel-header{
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 14px 10px;
+  border-bottom: 1px dashed rgba(0,255,160,.22);
+}
+
+.retro-title{
+  font-size: 0.78rem;
+  color: var(--retro-text);
+  text-shadow: 0 0 18px var(--retro-glow);
+}
+
+.retro-title-sm{
+  font-size: 0.70rem;
+  color: var(--retro-text);
+  margin-bottom: 10px;
+}
+
+.retro-subtitle{
+  font-size: 0.58rem;
+  color: var(--retro-muted);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+/* Botones retro */
+.retro-btn,
+.retro-btn-outline,
+.retro-btn-danger{
+  font-size: 0.62rem;
+  padding: .65rem .8rem;
+  border-radius: 12px;
+  letter-spacing: .6px;
+}
+
+.retro-btn{
+  border: 1px solid rgba(0,255,160,.55);
+  color: #071018;
+  background: linear-gradient(180deg, rgba(0,255,160,1), rgba(0,255,160,.70));
+  box-shadow: 0 10px 18px rgba(0,255,160,.10);
+}
+
+.retro-btn:hover{
+  filter: brightness(1.08);
+}
+
+.retro-btn-outline{
+  border: 1px solid rgba(0,255,160,.45);
+  color: var(--retro-text);
+  background: rgba(0,255,160,.06);
+}
+
+.retro-btn-outline:hover{
+  background: rgba(0,255,160,.10);
+}
+
+.retro-btn-danger{
+  border: 1px solid rgba(255,59,48,.65);
+  color: #1a0a0a;
+  background: linear-gradient(180deg, rgba(255,59,48,1), rgba(255,59,48,.72));
+}
+
+/* HUD */
+.retro-hud{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0,255,160,.14);
+}
+
+.retro-hud-item{
+  border: 1px solid rgba(0,255,160,.20);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(0, 255, 160, 0.04);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.25) inset;
+}
+
+.retro-hud-label{
+  font-size: 0.55rem;
+  color: var(--retro-muted);
+  margin-bottom: 8px;
+}
+
+.retro-hud-value{
+  font-size: 0.60rem;
+  color: var(--retro-text);
+  line-height: 1.5;
+}
+
+/* Canvas */
+.retro-canvas-wrap{
+  position: relative;
+  margin: 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(0,255,160,.24);
+  background: var(--canvas-bg);
+  box-shadow:
+    0 18px 35px rgba(0,0,0,.50),
+    0 0 28px rgba(0,255,160,.10);
+  overflow: hidden;
+}
+
+#gameCanvas{
+  display: block;
+  width: 100%;
+  height: 320px;  /* ← aquí personalizas el alto */
+  cursor: crosshair;
+}
+
+/* Scanlines (efecto CRT) */
+.retro-scanlines{
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.05) 0px,
+      rgba(255,255,255,0.05) 1px,
+      rgba(0,0,0,0) 3px,
+      rgba(0,0,0,0) 6px
+    );
+  opacity: 0.18;
+  mix-blend-mode: overlay;
+}
+
+/* Tip */
+.retro-tip{
+  margin: 0 14px 14px;
+  padding: 12px 12px;
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 61, 242, 0.35);
+  background: rgba(255, 61, 242, 0.06);
+  color: var(--retro-muted);
+  font-size: 0.58rem;
+  line-height: 1.7;
+}
+
+/* Stats */
+.retro-stats{
+  padding: 14px;
+}
+
+.retro-stat-box{
+  border: 1px solid rgba(0,255,160,.22);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(0,255,160,.04);
+  box-shadow: 0 0 0 3px rgba(0,0,0,.25) inset;
+}
+
+.retro-stat-row{
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.retro-big{
+  font-size: 1.15rem;
+  color: var(--retro-text);
+  text-shadow: 0 0 16px var(--retro-glow);
+  margin-top: 10px;
+}
+
+/* Progress retro */
+.retro-progress{
+  height: 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(0,255,160,.18);
+  overflow: hidden;
+}
+
+.retro-progress-bar{
+  height: 100%;
+  width: 0%;
+  background:
+    linear-gradient(90deg, rgba(0,255,160,1), rgba(255,61,242,0.95));
+  box-shadow: 0 0 18px rgba(0,255,160,.16);
+}
+
+/* Divider & rules */
+.retro-divider{
+  height: 1px;
+  margin: 18px 0;
+  background: linear-gradient(90deg, transparent, rgba(0,255,160,.40), transparent);
+}
+
+.retro-rules{
+  color: var(--retro-muted);
+  font-size: 0.58rem;
+  line-height: 1.8;
+}
+
+.retro-rules ul{
+  padding-left: 18px;
+}
+
+/* Footer */
+.retro-footer{
+  margin-top: 10px;
+  padding: 18px 0;
+  border-top: 1px solid var(--retro-border);
+  background: rgba(7, 11, 20, 0.65);
+  backdrop-filter: blur(8px);
+}
+
+.retro-footer-text{
+  font-size: 0.60rem;
+  color: var(--retro-muted);
+  line-height: 1.6;
+}
+
+.retro-accent{
+  color: var(--retro-accent);
+  text-shadow: 0 0 14px rgba(0,255,160,.18);
+}
+
+/* Responsive: alto del canvas más contenido en pantallas chicas */
+@media (max-width: 992px){
+  #gameCanvas{ height: 460px; }
+  .retro-hud{ grid-template-columns: 1fr; }
+}
