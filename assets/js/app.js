@@ -22,7 +22,7 @@
   const SPEED_PER_LEVEL = 0.10;
 
   // Fade-out al eliminar
-  const FADE_SPEED = 0.02;
+  const FADE_SPEED = 0.1;
 
   // Tamaños
   const R_MIN = 10;
